@@ -1,6 +1,5 @@
-# 18-ha-2010-pj
-Demo-Code zum Projektseminar "Wettbewerb künstliche Intelligenz in der Medizin" WiSe 2021/2022. Das Beispiel definiert gleichzeitig das Interface zu unserem Evaluierungs-System.
-
+# geEKGs for geEKGs 18-ha-2010-pj
+Code zum Projektseminar "Wettbewerb künstliche Intelligenz in der Medizin" SoSe 2022.
 ## Erste Schritte
 
 1. Klone/Forke dieses Repository

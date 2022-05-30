@@ -47,10 +47,10 @@ for idx, ecg_lead in enumerate(ecg_leads):
     ecg_lead=ecg_lead/np.amax(ecg_lead)
     #find the R peaks
     try:
-        _, rpeaks = nk.ecg_peaks(ecg_lead,sampling_rate=300)
+        _, rpeaks = nk.ecg_peaks(ecg_lead,sampling_rate=fs)
         #find the rest wave peaks
         # Delineate the ECG signal
-        _, waves_peak = nk.ecg_delineate(ecg_lead, rpeaks, sampling_rate=300, method="peak")
+        _, waves_peak = nk.ecg_delineate(ecg_lead, rpeaks, sampling_rate=fs, method="peak")
         q=pd.Series(waves_peak['ECG_Q_Peaks'])
         s=pd.Series(waves_peak['ECG_S_Peaks'])
         p=pd.Series(waves_peak['ECG_P_Peaks'])

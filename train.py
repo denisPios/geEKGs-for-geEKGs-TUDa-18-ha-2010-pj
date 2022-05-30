@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Beispiel Code und  Spielwiese
+Train code 
 
 """
 
@@ -9,82 +9,130 @@ import csv
 import scipy.io as sio
 import matplotlib.pyplot as plt
 import numpy as np
-from ecgdetectors import Detectors
 import os
 from wettbewerb import load_references
+import neurokit2 as nk
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+#for the signal denoising
+import scipy.io.wavfile
+import scipy.signal
+import joblib
 
 ### if __name__ == '__main__':  # bei multiprocessing auf Windows notwendig
 
-ecg_leads,ecg_labels,fs,ecg_names = load_references() # Importiere EKG-Dateien, zugehörige Diagnose, Sampling-Frequenz (Hz) und Name                                                # Sampling-Frequenz 300 Hz
+ecg_leads, ecg_labels, fs, ecg_names = load_references('training') # Importiere EKG-Dateien, zugehörige Diagnose, Sampling-Frequenz (Hz) und Name                                                # 
+#Sampling-Frequenz 300 Hz
+b, a = scipy.signal.butter(3, [.01, .05], 'band')
+#extract first the desired parameters from each ecg signal
+#actual paramters
+#width of the QRS Complex
+q2sMean=()
+q2sVar=()
+#distance between the P peak and the R peak
+p2rMean=()
+p2rVar=()
+#number of detected P waves compared to the detected R waves
+p2Num=()
+#distance between the R R peaks
+r2rVar=()
+#to get if it could extract the desired parameters, 1 if yes, otherwise no
+err=()
 
-detectors = Detectors(fs)                                 # Initialisierung des QRS-Detektors
-sdnn_normal = np.array([])                                # Initialisierung der Feature-Arrays
-sdnn_afib = np.array([])
+#for each ecg find the peaks of each wave component
 for idx, ecg_lead in enumerate(ecg_leads):
-    r_peaks = detectors.hamilton_detector(ecg_lead)     # Detektion der QRS-Komplexe
-    sdnn = np.std(np.diff(r_peaks)/fs*1000)             # Berechnung der Standardabweichung der Schlag-zu-Schlag Intervalle (SDNN) in Millisekunden
-    if ecg_labels[idx]=='N':
-      sdnn_normal = np.append(sdnn_normal,sdnn)         # Zuordnung zu "Normal"
-    if ecg_labels[idx]=='A':
-      sdnn_afib = np.append(sdnn_afib,sdnn)             # Zuordnung zu "Vorhofflimmern"
+    #converts to a series
+    ecg_lead=pd.Series(ecg_lead)
+    ecg_lead= scipy.signal.lfilter(b, a, ecg_lead)
+    ecg_lead=ecg_lead/np.amax(ecg_lead)
+    #find the R peaks
+    try:
+        _, rpeaks = nk.ecg_peaks(ecg_lead,sampling_rate=300)
+        #find the rest wave peaks
+        # Delineate the ECG signal
+        _, waves_peak = nk.ecg_delineate(ecg_lead, rpeaks, sampling_rate=300, method="peak")
+        q=pd.Series(waves_peak['ECG_Q_Peaks'])
+        s=pd.Series(waves_peak['ECG_S_Peaks'])
+        p=pd.Series(waves_peak['ECG_P_Peaks'])
+    except:
+        er=1
+        #error might be that we have not many r peaks, still found somehow a lot of the other peaks
+        r=s
+        r.loc[:]=np.nan
+    else:
+        #save the locations, rP contains R peak locations for all ecg samples, can be accesed with r[index]
+        #all the locations of the q, s, r,p waves peaks
+        r=pd.Series(rpeaks['ECG_R_Peaks'])
+        er=0
+    #get qrs width
+    qs=s-q
+    #only take into the account the ones you can actually detect
+    qs=qs.dropna()
+    #get time from frequency to get generalization of parameters
+    qs=qs/fs*1000
+    qsMean=np.mean(qs)
+    qsVar=np.std(qs)
+    #get distance between p and r
+    pr=r-p
+    pr=pr/fs*1000
+    prTotal=len(pr)
+    pr=pr.dropna()
+    prMean=np.mean(pr)
+    prVar=np.std(pr)
+    prNonNaN=len(pr)
+    #to get how many p waves couldn be detected compared to the number of R peaks that got detected
+    pNum=(prTotal-prNonNaN)/prTotal
+    #difference between the R to R distance
+    rrVar=np.std(np.diff(r)/fs*1000)
+    #sometimes when the signal is noisy or idk it gets a few nan over all, maybe need to filter signals or something
+    if pd.isna(qsMean) or pd.isna(qsVar) or pd.isna(prMean) or pd.isna(prVar) or pd.isna(pNum) or pd.isna(rrVar):
+        qsMean=-1
+        qsVar=-1
+        prMean=-1
+        prVar=-1
+        pNum=-1
+        rrVar=-1
+        er=1
+        print(idx)
+    #save the extracted parameters of all ecg signals
+    #qrs complex width
+    q2sMean=q2sMean+(qsMean,)
+    q2sVar=q2sVar+(qsVar,)
+    #distance between the P peak and the R peak
+    p2rMean=p2rMean+(prMean,)
+    p2rVar=p2rVar+(prVar,)
+    #number of detected P waves compared to the detected R waves
+    p2Num=p2Num+(pNum,)
+    #distance between the R R peaks
+    r2rVar=r2rVar+(rrVar,)
+    err=err+(er,)
+    #just to show how many 
     if (idx % 100)==0:
-      print(str(idx) + "\t EKG Signale wurden verarbeitet.")
+         print(str(idx) + "\t EKG Signale wurden verarbeitet.")
 
-fig, axs = plt.subplots(2,1, constrained_layout=True)
-axs[0].hist(sdnn_normal,2000)
-axs[0].set_xlim([0, 300])
-axs[0].set_title("Normal")
-axs[0].set_xlabel("SDNN (ms)")
-axs[0].set_ylabel("Anzahl")
-axs[1].hist(sdnn_afib,300)
-axs[1].set_xlim([0, 300])
-axs[1].set_title("Vorhofflimmern")
-axs[1].set_xlabel("SDNN (ms)")
-axs[1].set_ylabel("Anzahl")
-plt.show()
+#now save all the parameters in a single data frame to train
+inputTrain = pd.DataFrame(data=dict(variance_of_RR=r2rVar))
+inputTrain['Variance RR']= r2rVar
+#just to make it look better xd
+inputTrain = inputTrain.drop(columns="variance_of_RR")
+#keep the extracted parameters
+inputTrain['Mean QS width']=q2sMean
+inputTrain['Variance QS width']=q2sVar
+inputTrain['Mean PR width']=p2rMean
+inputTrain['Variance PR width']=p2rVar
+inputTrain['Relative number of P waves detected']=p2Num
+inputTrain['Could extract parameters']=err
 
-sdnn_total = np.append(sdnn_normal,sdnn_afib) # Kombination der beiden SDNN-Listen
-p05 = np.nanpercentile(sdnn_total,5)          # untere Schwelle
-p95 = np.nanpercentile(sdnn_total,95)         # obere Schwelle
-thresholds = np.linspace(p05, p95, num=20)    # Liste aller möglichen Schwellwerte
-F1 = np.array([])
-for th in thresholds:
-  TP = np.sum(sdnn_afib>=th)                  # Richtig Positiv
-  TN = np.sum(sdnn_normal<th)                 # Richtig Negativ
-  FP = np.sum(sdnn_normal>=th)                # Falsch Positiv
-  FN = np.sum(sdnn_afib<th)                   # Falsch Negativ
-  F1 = np.append(F1, TP / (TP + 1/2*(FP+FN))) # Berechnung des F1-Scores
+#labels in another data frame separatly
+labelTrain=pd.DataFrame(data=dict(Label=ecg_labels))
+model_rf = RandomForestClassifier(n_estimators=20,#___________, # Set the number of trees to 20
+                                 random_state=123)
+labelTrain2=np.ravel(labelTrain)
+# Fit the model to the training set
+model_rf.fit(inputTrain, labelTrain2)
 
-th_opt=thresholds[np.argmax(F1)]              # Bestimmung des Schwellwertes mit dem höchsten F1-Score
 
-if os.path.exists("model.npy"):
-    os.remove("model.npy")
-with open('model.npy', 'wb') as f:
-    np.save(f, th_opt)
-
-fig, ax = plt.subplots()
-ax.plot(thresholds,F1)
-ax.plot(th_opt,F1[np.argmax(F1)],'xr')
-ax.set_title("Schwellwert")
-ax.set_xlabel("SDNN (ms)")
-ax.set_ylabel("F1")
-plt.show()
-
-fig, axs = plt.subplots(2,1, constrained_layout=True)
-axs[0].hist(sdnn_normal,2000)
-axs[0].set_xlim([0, 300])
-tmp = axs[0].get_ylim()
-axs[0].plot([th_opt,th_opt],[0,10000])
-axs[0].set_ylim(tmp)
-axs[0].set_title("Normal")
-axs[0].set_xlabel("SDNN (ms)")
-axs[0].set_ylabel("Anzahl")
-axs[1].hist(sdnn_afib,300)
-axs[1].set_xlim([0, 300])
-tmp = axs[1].get_ylim()
-axs[1].plot([th_opt,th_opt],[0,10000])
-axs[1].set_ylim(tmp)
-axs[1].set_title("Vorhofflimmern")
-axs[1].set_xlabel("SDNN (ms)")
-axs[1].set_ylabel("Anzahl")
-plt.show()
+if os.path.exists("model.obj"):
+    os.remove("model.obj")
+with open('model.obj', 'wb') as f:
+    joblib.dump(model_rf, f)

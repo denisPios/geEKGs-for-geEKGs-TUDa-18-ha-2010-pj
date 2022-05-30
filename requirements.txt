@@ -5,3 +5,4 @@ py-ecg-detectors==1.0.2
 pandas==1.1.0
 mysql-connector-python==8.0.26
 neurokit2==0.1.7
+scikit-learn==1.0.2

@@ -23,7 +23,7 @@ import scipy.signal
 import joblib
 
 ###Signatur der Methode (Parameter und Anzahl return-Werte) darf nicht verändert werden
-def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[str], model_name : str='model.obj',is_binary_classifier : bool=False) -> List[Tuple[str,str]]:
+def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[str], model_name : str='model.obj',is_binary_classifier : bool=True/False) -> List[Tuple[str,str]]:
     '''
     Parameters
     ----------

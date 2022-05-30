@@ -121,7 +121,7 @@ def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[st
                 pNum=-1
                 rrVar=-1
                 er=1
-                print(idx)
+                #print(idx)
             #save the extracted parameters of all ecg signals
             q2sMeanT=q2sMeanT+(qsMean,)
             q2sVarT=q2sVarT+(qsVar,)

@@ -92,8 +92,7 @@ for idx, ecg_lead in enumerate(ecg_leads):
         prVar=-1
         pNum=-1
         rrVar=-1
-        er=1
-        
+        er=1  
     #save the extracted parameters of all ecg signals
     #qrs complex width
     q2sMean=q2sMean+(qsMean,)

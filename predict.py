@@ -48,7 +48,10 @@ def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[st
 
 #------------------------------------------------------------------------------
 # Euer Code ab hier  
-
+    file_type=model_name.split(".")
+    file_type=file_type[1]
+    if(file_type=="npy"):
+        model_name="model.obj"
     with open(model_name, 'rb') as f:  
         loaded_model = joblib.load(f)         # Lade simples Model (1 Parameter)
         #analog to train part

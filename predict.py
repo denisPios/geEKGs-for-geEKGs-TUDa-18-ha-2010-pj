@@ -53,7 +53,7 @@ def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[st
     if(file_type=="npy"):
         model_name="model.obj"
     with open(model_name, 'rb') as f:  
-        loaded_model = joblib.load(f)         # Lade simples Model (1 Parameter)
+        loaded_model = joblib.load(f)         # Lade Model
         #analog to train part
         #actual dataframe
         #width of the QRS Complex

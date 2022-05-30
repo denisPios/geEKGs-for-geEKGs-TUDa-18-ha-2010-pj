@@ -43,7 +43,7 @@ err=()
 for idx, ecg_lead in enumerate(ecg_leads):
     #converts to a series
     ecg_lead=pd.Series(ecg_lead)
-    ecg_lead= scipy.signal.lfilter(b, a, ecg_lead)
+    #ecg_lead= scipy.signal.lfilter(b, a, ecg_lead)
     ecg_lead=ecg_lead/np.amax(ecg_lead)
     #find the R peaks
     try:

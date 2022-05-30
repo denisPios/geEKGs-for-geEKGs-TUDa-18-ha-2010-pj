@@ -21,7 +21,7 @@ import joblib
 
 ### if __name__ == '__main__':  # bei multiprocessing auf Windows notwendig
 
-ecg_leads, ecg_labels, fs, ecg_names = load_references('training') # Importiere EKG-Dateien, zugehörige Diagnose, Sampling-Frequenz (Hz) und Name                                                # 
+ecg_leads, ecg_labels, fs, ecg_names = load_references() # Importiere EKG-Dateien, zugehörige Diagnose, Sampling-Frequenz (Hz) und Name                                                # 
 #Sampling-Frequenz 300 Hz
 b, a = scipy.signal.butter(3, [.01, .05], 'band')
 #extract first the desired parameters from each ecg signal

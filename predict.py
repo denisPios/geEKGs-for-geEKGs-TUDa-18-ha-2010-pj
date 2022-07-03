@@ -63,7 +63,7 @@ def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[st
         ecg_leads[idx]=ecg_lead/np.amax(ecg_leads[idx])
     
     #generate the data and decoder in a segmentation form for the CNN
-    test=generate_data_set(num_HB,ecg_leads,ecg_names,fs,smote=True,minL=opt_len)
+    test=generate_data_set(num_HB,ecg_leads,ecg_names,fs,smote=False,minL=opt_len)
     x_test=test['input']
     decoder=test['decoder']
     

@@ -12,7 +12,7 @@ def train(ecg_leads,ecg_labels,ecg_names,fs,num_HB,model_name:str='Abgabe',epoch
     #filter data
     for idx, ecg_lead in enumerate(ecg_leads):
         ecg_leads[idx]=filter_ecg(ecg_leads[idx])
-        ecg_leads[idx]=ecg_lead/np.amax(ecg_leads[idx])
+        ecg_leads[idx]=ecg_leads[idx]/np.amax(ecg_leads[idx])
     #rename labels to int
     for idx, label in enumerate(ecg_labels):
         if label=="N":

@@ -52,7 +52,6 @@ def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[st
     cnn_model.load_weights(model_name+'.h5')
     #compile the model
     cnn_model.compile(optimizer='adam', loss = 'sparse_categorical_crossentropy', metrics=['accuracy'])
-    
     #get the number of Beat segmentation and the optimal length form the model
     num_HB,opt_len=np.load(model_name+'.npy')
     
@@ -60,7 +59,7 @@ def predict_labels(ecg_leads : List[np.ndarray], fs : float, ecg_names : List[st
     #filter the data
     for idx, ecg_lead in enumerate(ecg_leads):
         ecg_leads[idx]=filter_ecg(ecg_leads[idx])
-        ecg_leads[idx]=ecg_lead/np.amax(ecg_leads[idx])
+        ecg_leads[idx]=ecg_leads[idx]/np.amax(ecg_leads[idx])
     
     #generate the data and decoder in a segmentation form for the CNN
     test=generate_data_set(num_HB,ecg_leads,ecg_names,fs,smote=False,minL=opt_len)

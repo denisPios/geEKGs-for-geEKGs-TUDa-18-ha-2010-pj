@@ -33,22 +33,21 @@ def train(ecg_leads,ecg_labels,ecg_names,fs,num_HB,model_name:str='Abgabe',epoch
         # Create sequential model 
     cnn_model = tf.keras.models.Sequential()
     #First CNN layer  with 32 filters, kernel 5
-    cnn_model.add(Conv1D(filters=32, kernel_size=(5,), strides=1, padding='same',
+    cnn_model.add(Conv1D(filters=128, kernel_size=(50,), strides=3, padding='same',
                          activation=tf.keras.layers.LeakyReLU(alpha=0.001), input_shape = (x_train.shape[1:])))
+    cnn_model.add(tf.keras.layers.BatchNormalization())
+    cnn_model.add(MaxPool1D(pool_size=(2,), strides=3, padding='same'))
     #Second CNN layer same as first
-    cnn_model.add(Conv1D(filters=32, kernel_size=(5,), strides=1, padding='same',
+    cnn_model.add(Conv1D(filters=32, kernel_size=(7,), strides=1, padding='same',
                          activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
-
-    #Third CCN layer with 64 filter, kernel 3
-    cnn_model.add(Conv1D(filters=64, kernel_size=(3,), strides=1, padding='same',
-                         activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
-    #Fourth CNN layer same as third
-    cnn_model.add(Conv1D(filters=64, kernel_size=(3,), strides=1,padding='same',
-                         activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
-    
-    #Fifth CNN layer with Max pooling
-    cnn_model.add(MaxPool1D(pool_size=(3,), strides=2, padding='same'))
+    cnn_model.add(tf.keras.layers.BatchNormalization())
+    cnn_model.add(MaxPool1D(pool_size=(2,), strides=2, padding='same'))
     cnn_model.add(Dropout(0.5))
+    #Third CCN layer with 64 filter, kernel 3
+    cnn_model.add(Conv1D(filters=32, kernel_size=(9,), strides=1, padding='same',
+                         activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
+    cnn_model.add(Dropout(0.5))
+   
 
     #Add a noise layer to make the model more robust and help predictions with noise
     cnn_model.add(GaussianNoise(0.1))
@@ -56,11 +55,7 @@ def train(ecg_leads,ecg_labels,ecg_names,fs,num_HB,model_name:str='Abgabe',epoch
     #Flatten the output
     cnn_model.add(Flatten())
     
-    #Add a dense layer with 64 neurons
-    cnn_model.add(Dense(units = 64, activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
-    #Add a dense layer with 128 neurons
-    cnn_model.add(Dense(units = 128, activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
-    #Add a dense layer with 128 neurons
+   
     cnn_model.add(Dense(units = 128, activation=tf.keras.layers.LeakyReLU(alpha=0.001)))
     
     #Softmax as last layer with 4 outputs

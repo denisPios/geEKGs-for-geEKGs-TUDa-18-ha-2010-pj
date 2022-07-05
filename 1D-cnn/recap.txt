@@ -75,7 +75,7 @@ zweite cnn, gegen 90/56
 		87/54        11s
 in 100epochs, lernt langsamer gegen 81% acc
 
-60 epochs gegen 
+60 epochs gegen 88/60 at 79-80%
 
 link:
 https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9294838

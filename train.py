@@ -31,6 +31,7 @@ def train(ecg_leads,ecg_labels,ecg_names,fs,num_HB,model_name:str='Abgabe',epoch
     opt_length=train['optimal_length']
     
         # Create sequential model 
+        # CNN Architecture based on https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9294838
     cnn_model = tf.keras.models.Sequential()
     #First CNN layer  with 32 filters, kernel 5
     cnn_model.add(Conv1D(filters=128, kernel_size=(50,), strides=3, padding='same',

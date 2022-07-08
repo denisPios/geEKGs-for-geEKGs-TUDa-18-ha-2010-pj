@@ -9,7 +9,7 @@ import numpy as np
 from wettbewerb import load_references
 #this trains 
 num_HB=3
-model_name='Abgabe_geEKGs_for_geEKGs'
+model_name='Abgabe_Final'
 epochs=100
 batch_size=64
 weights={0: 2.,1: 10.,2: 1.,3: 1}

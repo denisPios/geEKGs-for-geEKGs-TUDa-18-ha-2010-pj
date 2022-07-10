@@ -15,6 +15,9 @@ from wettbewerb import load_references
 import feature
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 import joblib
 
 
@@ -27,7 +30,8 @@ def train(ecg_leads, ecg_labels, fs, ecg_names):
     list_x = narray_x.tolist()
     list_y = ecg_labels
 
-    model = RandomForestClassifier(n_estimators=160, min_samples_split=2, min_samples_leaf=4, max_depth=20)
+    #model = RandomForestClassifier(n_estimators=160, min_samples_split=2, min_samples_leaf=4, max_depth=20)
+    model = AdaBoostClassifier(base_estimator = DecisionTreeClassifier(max_depth=20), n_estimators = 160)
     model.fit(list_x, list_y)
 
     if os.path.exists("Abgabe_2.obj"):

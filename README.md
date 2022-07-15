@@ -1,3 +1,7 @@
+## Paper:
+https://sharelatex01.ca.hrz.tu-darmstadt.de/project/62c464d23a6db269fe5faaf3
+
+
 # geEKGs for geEKGs 18-ha-2010-pj
 Code zum Projektseminar "Wettbewerb künstliche Intelligenz in der Medizin" SoSe 2022.
 ## Erste Schritte
